@@ -1,0 +1,25 @@
+#!/bin/bash
+
+broadcast=$(ip a | awk '$1 == "inet" &&  $4 !~ /^127/ { print $4"/24" }' | uniq)
+
+if test -f "/usr/bin/lolcat"; then
+echo "Executing nmap on the subnets: $broadcast" | lolcat
+else echo "Executing nmap on the subnets: $broadcast"   
+fi
+if test -f "/usr/bin/nmap"; then
+candidates=$(
+for brdip in ${broadcast}; do 
+	nmap -F -O -A -Pn $brdip | awk '$2 == "scan" { print $5 }'
+done)
+
+echo "Found the following candidates:$candidates"
+for ip in ${candidates}; do
+	echo "Probing $ip..."
+#	ssh -q root@$ip
+done
+
+else echo "Can't find nmap"
+fi
+
+
+
